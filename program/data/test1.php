@@ -1,5 +1,5 @@
-<?php
-	header("Content-type:text/html;charset=utf-8");	// utf-8，不用管它
+<?
+	header("Content-type:\"text/html;charset=utf-8");	// utf-8，不用管它
 	$i = 2;
 	$x = 2.3;	// 中文注释
 	/*

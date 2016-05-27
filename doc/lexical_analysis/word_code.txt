@@ -4,7 +4,7 @@
 
 单词集：
 	变量：以$开始，字母或下划线作为第二个字符 的 数字下划线字母串(处理的时候去掉$，$当做界符处理)
-	基本字：<?php ?> function break continue switch case default if else elseif echo while for return
+	基本字：<? ?> function break continue switch case default if else elseif echo while for return
 	无符号整数：数字串
 	有符号整数：(+ -)数字串
 	无符号浮点数：数字串，一个小数点
@@ -17,7 +17,7 @@
 	变量：(i, 字符串)
 	函数名：(fn, 字符串)
 	基本字： 基本结构是 (编码, NUL)，以下省略NUL，只写编码和基本字的对应关系
-		<?php		bg
+		<?			bg
 		?>			ed
 		function	fn
 		break		br
