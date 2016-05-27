@@ -2,7 +2,7 @@
 #include <iostream>
 #include "../header/error_process.h"
 using namespace std;
-void pretreatment(char filename[], char buf[]){
+void pretreatment(char filename[], char buf[], char target[]){
 
     ifstream cinf(filename, ios::in);   // 定义输入流，从文件输入到内存
     char c0 = '$', c1;  // 记录前一个字符，用于处理一些注释和续行符
@@ -13,6 +13,7 @@ void pretreatment(char filename[], char buf[]){
     int comment_type = 0;       // 注释类型，1->/**/ 2->//
 
     cout << "预处理PHP源文件中... " << endl;
+    cout << "<源程序>" << endl;
 
     int i = 0;
     void *p = cinf.read(&c1, sizeof(char));  // 每次读一个字符
@@ -21,10 +22,9 @@ void pretreatment(char filename[], char buf[]){
         if(false == in_comment){
             // 不在注释中
 
-            // 先考虑是否在字符串中的情况
             if(true == in_string){
-                clear_c1 = false;
                 // 在字符串中，不考虑注释判断
+                clear_c1 = false;
                 if(string_flag == '"') {
                     // 双引号作为定义符
                     if (c0 == '\\' && c1 == '\\') {
@@ -55,7 +55,19 @@ void pretreatment(char filename[], char buf[]){
                         }
                     }
                 }
+                buf[i++] = c1;  // 将字符存入扫描缓冲区
+                if(true == clear_c1){
+                    c1 = ' ';
+                }
             }else{
+                // 不在字符串中
+                // 字符串定义符为'和"，这里将'转成"。
+                if(c1 == '"' || c1 == '\''){
+                    in_string = true;
+                    string_flag = c1;
+                    c1 = '"';
+                }
+
                 // PHP的注释是 // 和 /* */
                 if(c0 == '/' && c1 == '*'){
                     // 进入注释，去掉已存入扫描缓冲区的字符\。
@@ -66,17 +78,31 @@ void pretreatment(char filename[], char buf[]){
                     in_comment = true;
                     comment_type = 2;
                     --i;
+                }else if(c0 == '\\' && c1 == '\n'){
+                    --i;    // 去掉续行符
+                }else{
+                    if(c1 == '\t' || c1 == '\n'){
+                        c1 = ' ';
+                    }
+                    buf[i++] = c1;  // 将字符存入扫描缓冲区
                 }
-            }
-            buf[i++] = c1;  // 将字符存入扫描缓冲区
-            if(true == clear_c1){
-                c1 = ' ';
             }
         }else{
             // 在注释中
+            if(comment_type == 1 && c0 == '*' && c1 == '/'){
+                in_comment = false;
+            }else if(comment_type == 2 && c1 == '\n'){
+                in_comment = false;
+                buf[i++] = ' ';
+            }
         }
+        c0 = c1;    // 向前读一个字符
+        p = cinf.read(&c1,sizeof(char));
     }
+    buf[i] = '#';
 
-    cout << "预处理PHP结束" << endl;
+    ofstream coutf(target);
+    coutf << buf;
+    cout << "预处理PHP结束，结果保存在 '" << target << "' 中。" << endl;
     return ;
 }
