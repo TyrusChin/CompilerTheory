@@ -102,6 +102,8 @@ void pretreatment(char filename[], char buf[], char target[]){
     buf[i] = '#';
 
     ofstream coutf(target);
+    cinf.close();
+    coutf.close();
     coutf << buf;
     cout << "预处理PHP结束，结果保存在 '" << target << "' 中。" << endl;
     return ;
