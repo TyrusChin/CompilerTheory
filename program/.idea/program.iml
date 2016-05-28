@@ -2,12 +2,14 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src/lex.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/error_process.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/pretreatment.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/main.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/header/pretreatment.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/header/error_process.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/header/lex.h" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">

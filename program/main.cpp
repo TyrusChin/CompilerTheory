@@ -7,13 +7,17 @@ using namespace std;
 
 int main() {
 
+    string name;
+    cout << "请输入测试文件的名字(不含后缀)：" << endl;
+    cin >> name;
+
     // 放置程序的数组
     char buf[4048] = {'\0'};
 
     string data_dir = "/home/tyruschin/ClionProjects/CompilerTheory/program/data/";
-    string source_file = "test1.php";
-    string pretreatment_target_file = "test1.pre.php";
-    string lex_target_file = "test1.lex.php";
+    string source_file = name + ".php";
+    string pretreatment_target_file = name + ".pre.php";
+    string lex_target_file = name + ".lex.php";
 
     // 预处理
     pretreatment((char *)((data_dir+source_file).c_str()), buf, (char *)((data_dir+pretreatment_target_file).c_str()));

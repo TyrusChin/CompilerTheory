@@ -81,7 +81,7 @@ void pretreatment(char filename[], char buf[], char target[]){
                 }else if(c0 == '\\' && c1 == '\n'){
                     --i;    // 去掉续行符
                 }else{
-                    if(c1 == '\t' || c1 == '\n'){
+                    if(c1 == '\t' || c1 == '\n' || c1 == '\r'){
                         c1 = ' ';
                     }
                     buf[i++] = c1;  // 将字符存入扫描缓冲区
