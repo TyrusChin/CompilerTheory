@@ -3,37 +3,37 @@
 	function __construct($store_method,$domain = ''){
 		switch($store_method){
 			case 'EmeSaeStorage':
-				return new EmeSaeStorage($domain);
+				return EmeSaeStorage($domain);
 			case 'EmeOSS':
-				return new EmeOSS($domain);
+				return EmeOSS($domain);
 			case 'EmeIOOperation':
-				return new EmeIOOperation();
+				return EmeIOOperation();
 			default:
-				return null;
+				return 0;
 		}
 	}
 
 
 
 	function __construct($domain){
-		$this->domain = $domain;
-		$this->storage = new SaeStorage();
+		$domain = $domain;
+		$storage = SaeStorage();
 	}
 
 	function upload($srcFileName,$destFileName){
-		$attr = array('encoding'=>'gzip');
-		return $this->storage->upload($this->domain,$destFileName, $srcFileName, $attr, true);
+		$attr = array('gzip');
+		return upload($domain,$destFileName, $srcFileName, $attr, 1);
 	}
 
 	function write($content,$file_path){
-		return $this->storage->write($this->domain,$file_path,$content);
+		return write($domain,$file_path,$content);
 	}
 
 	function upload($srcFileName,$destFileName){
 		if(move_uploaded_file($srcFileName,$destFileName)){
 			return $destFileName;
 		}else{
-			return false;
+			return 0;
 		}
 	}
 

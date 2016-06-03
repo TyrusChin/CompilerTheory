@@ -1,7 +1,7 @@
 #include <iostream>
-#include <string>
 #include "header/pretreatment.h"
 #include "header/lex.h"
+#include "header/recursive_descent.h"
 
 using namespace std;
 
@@ -26,6 +26,10 @@ int main() {
 
     // 词法分析
     lex(buf, (char *)((data_dir+lex_target_file).c_str()));
+    
+    // 语法分析
+    parser((char *)(data_dir+lex_target_file).c_str());
+    
 
     return 0;
 }

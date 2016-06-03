@@ -1,5 +1,4 @@
 bg	NUL
-fs	php
 fs	header
 (	NUL
 s	Content-type: text/html; charset=utf-8
@@ -72,8 +71,7 @@ s	type
 ;	NUL
 if	NUL
 (	NUL
-fs	file
-fs	_exists
+fs	file_exists
 (	NUL
 id	dest_filename
 )	NUL
