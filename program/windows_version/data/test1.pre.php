@@ -1,0 +1,1 @@
+<?  header("Content-type:\"text/html;charset=utf-8");   $i = 2;  $x = 2.3;             $y = $i + 2;  $_xy = "abc";  $Y = 100;  echo $y.$Y;   $str = "// // /* 什么鬼 */";   $str1 = "' \\n \\n 这是单引号的 '";          echo $str."\n";      echo 123;   ?> #
