@@ -599,7 +599,7 @@ void EF(){
             }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
                 RV();
             }else{
-                parse_error("EF");
+                parse_error("elseif条件语法错误");
             }
             if(")" == t.code){
                 forward_word();
@@ -609,20 +609,20 @@ void EF(){
                     if("}" == t.code){
                         forward_word();
                     }else{
-                        parse_error("EF");
+                        parse_error("elseif语句缺少闭合的界符");
                     }
                 }else if(str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
                     S();
                 }else{
-                    parse_error("EF");
+                    parse_error("elseif语句语法错误");
                 }
                 EF();
             }
         }else{
-            parse_error("EF");
+            parse_error("elseif语句缺少闭合的界符");
         }
     }else if(!str_in_array(t.code, arr4, sizeof(arr4)/sizeof(arr4[0]))){
-        parse_error("EF");
+        parse_error("elseif语句附近出现非法字符");
     }
 }
 
@@ -639,21 +639,21 @@ void ES(){
             if("}" == t.code){
                 forward_word();
             }else{
-                parse_error("ES");
+                parse_error("else语句缺少闭合的界符");
             }
         }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
             S();
         }else{
-            parse_error("ES");
+            parse_error("else语句语法错误");
         }
     }else if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
-        parse_error("ES");
+        parse_error("else语句附近出现非法字符");
     }
 }
 
 void AE(){
     if(!match_brackets("(")){
-        parse_error("AE");
+        parse_error("非法的语句开始符号");
     }
     // AE -> VAR = RV
     // first(AE) = {id}
@@ -667,7 +667,7 @@ void AE(){
         }
     }
     if(0 == match){
-        parse_error("AE");
+        parse_error("赋值语句语法错误");
     }
     if(!match_brackets(")")){
         // parse_error("AE");
@@ -676,7 +676,7 @@ void AE(){
 
 void VAR(){
     if(!match_brackets("(")){
-        parse_error("VAR");
+        parse_error("非法的语句开始符号");
     }
     // VAR -> id IDX
     // first(VAR) = {id}
@@ -684,7 +684,7 @@ void VAR(){
         forward_word();
         IDX();
     }else{
-        parse_error("VAR");
+        parse_error("变量定义语法错误");
     }
     if(!match_brackets(")")){
         // parse_error("VAR");
@@ -693,14 +693,14 @@ void VAR(){
 
 void NM(){
     if(!match_brackets("(")){
-        parse_error("NM");
+        parse_error("非法的语句开始符号");
     }
     // NM -> i | ui | f | uf
     string arr1[] = {I, UI, F, UF};
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         forward_word();
     }else{
-        parse_error("NM");
+        parse_error("不合法的数字表示");
     }
     if(!match_brackets(")")){
         // parse_error("NM");
@@ -709,7 +709,7 @@ void NM(){
 
 void STR(){
     if(!match_brackets("(")){
-        parse_error("STR");
+        parse_error("非法的语句开始符号");
     }
     // STR -> T3 (s | VAR)
     // T3 -> ((s | VAR) . T3) | ε
@@ -720,7 +720,7 @@ void STR(){
         } else if (ID == t.code) {
             VAR();
         } else {
-            parse_error("STR1");
+            parse_error("字符串定义不合法");
         }
     }while("." == t.code && forward_word());
     if(!match_brackets(")")){
@@ -730,7 +730,7 @@ void STR(){
 
 void FC(){
     if(!match_brackets("(")){
-        parse_error("FC");
+        parse_error("非法的语句开始符号");
     }
     // FC -> fs '(' CP ')'
     int match = 0;
@@ -746,7 +746,7 @@ void FC(){
         }
     }
     if(0 == match){
-        parse_error("FC");
+        parse_error("函数调用语法不合法");
     }
     if(!match_brackets(")")){
         // parse_error("FC");
@@ -755,7 +755,7 @@ void FC(){
 
 void ME(){
     if(!match_brackets("(")){
-        parse_error("ME");
+        parse_error("非法的语句开始符号");
     }
     // ME -> ((! | ++ | --) VAR) | (VAR (++ | --) | VAR | NM | STR
     // first(ME) = {! , ++ , -- , id , s , i , ui , f , uf}
@@ -789,7 +789,7 @@ void ME(){
     }else if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
         NM();
     }else{
-        parse_error("ME");
+        parse_error("不合法的算术表达式");
     }
     if(!match_brackets(")")){
         // parse_error("ME");
@@ -802,7 +802,7 @@ void MO(){
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         forward_word();
     }else{
-        parse_error("MO");
+        parse_error("不支持的运算符");
     }
 }
 
@@ -817,10 +817,10 @@ void IDX(){
             forward_word();
             IDX();
         }else{
-            parse_error("IDX");
+            parse_error("数组缺少闭合界符]");
         }
     }else if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
-        parse_error("IDX");
+        parse_error("非法操作数组");
     }
 }
 
@@ -837,7 +837,7 @@ void CP(){
             RV();
         }
     }else if(")" != t.code){
-        parse_error("CP");
+        parse_error("函数调用的参数列表缺少闭合界符)");
     }
 }
 
