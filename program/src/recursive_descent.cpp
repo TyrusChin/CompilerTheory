@@ -2,7 +2,6 @@
 #include <iostream>
 #include "../header/word_code.h"
 #include <queue>
-#include <stack>
 using namespace std;
 
 // 函数原型说明，每个产生式都对应一个
@@ -32,16 +31,19 @@ struct code_val {
     string val;
 };
 
+typedef struct cvNode {
+    struct code_val node;
+    struct cvNode* next;
+    struct cvNode* front;
+} cvNode, *pCvNode;
+
 int forward_word(); // 声明
 char tval[1024] = {'\0'};
 
 // 全局的单词结构，指向当前的处理单词
 code_val t;
+pCvNode pn; // 当前结点指针
 ifstream cinf;
-// 用于解决冲突的队列
-queue<code_val> qc;
-// 用于解决大小括号匹配的栈
-stack<string> sm;
 
 // 错误输出函数 debug
 //void parse_error(string func, string code = t.code){
@@ -50,20 +52,35 @@ stack<string> sm;
 //}
 
 // 错误输出函数 正式的
-void parse_error(string reason, string code = t.code){
-    cout << endl << reason << " : " << code << endl;
+void parse_error(string func, string reason, string code = t.code){
+    cout << endl << func << "函数中，" << reason << " : " << code << endl;
     exit(0);
 }
 
 // 主函数
 void parser(char code_val_file[]){
     cinf.open(code_val_file, ios::in);
+    cvNode* const start = new cvNode();
+    pCvNode p = start;  // 头节点
+    p -> next = 0;
+    p -> front = 0;
+    while(cinf >> t.code){
+        cinf.getline(tval, sizeof(tval));
+        t.val = tval;
+        pCvNode q = new cvNode();
+        q -> node = t;
+        q -> front = p;
+        q -> next = 0;
+        p -> next = q;
+        p = q;
+    }
+    pn = start;
     forward_word();
     P();
-    if(t.code == "#" && sm.empty()){
+    if(t.code == "#"){
         cout << endl << "语法正确" << endl;
     }else{
-        parse_error("多余的符号");
+        parse_error(__FUNCTION__, "多余的符号");
     }
     return ;
 }
@@ -81,15 +98,16 @@ int str_in_array(string find, string array[], int size){
 
 int forward_word(){
     // 移进一个单词
-    if(qc.empty()) {
-        cinf >> t.code;
-        cinf.getline(tval, sizeof(tval));
-        t.val = tval;
-        cout << t.code << " " << t.val << endl;
-    }else{
-        t = qc.front();
-        qc.pop();
-    }
+    pn = pn -> next;
+    t = pn -> node;
+    cout << t.code << " " << t.val << endl;
+    return 1;
+}
+
+int backward_word(){
+    // 后退一个单词
+    pn = pn -> front;
+    t = pn -> node;
     return 1;
 }
 
@@ -97,30 +115,40 @@ int forward_word(){
 // 调用时机：以下的情况所对应的函数，如STR()，函数体内第一句和最后一句
 // 支持大括号的位置：B CS PS SS AS
 // 支持小括号的位置：RV NM ME STR VAR FC MS AE
-int match_brackets(string symbol){
-    // 传入{}() 的其中一种，循环压栈。
-    while (symbol == t.code) {
-        if (sm.empty()) {
-            if (")" == symbol || "}" == symbol) {
-                return 0;
-            }
-            sm.push(symbol);
-            forward_word();
-        } else {
-            string top = sm.top();
-            if (")" == symbol && "(" == top) {
-                sm.pop();
-            } else if ("}" == symbol && "{" == top) {
-                sm.top();
-            } else if ("(" == symbol || "{" == symbol) {
-                sm.push(symbol);
-                forward_word();
-            } else {
-                return 0;
+int match_brackets(string symbol, int match_time = -1){
+    // 传入{}() 的其中一种，返回symbol的个数。
+    // match_time 返回匹配的次数，一般传入该非终结符的{(的匹配数，以防影响到本来的文法)}匹配，-1表示全匹配
+    int count = 0;
+    int matched = 0;
+    while (match_time != 0 && symbol == t.code) {
+        ++ count;
+        forward_word();
+        if(-1 != match_time){
+            ++ matched;
+            if(match_time == matched){
+                break;
             }
         }
     }
-    return 1;
+    return count;
+}
+
+// 处理产生式头部的符号，如 {(等
+void enqueue_brackets(string symbol, queue<code_val> &tempq){
+    // symbol = { or (
+    while(symbol == t.code){
+        code_val cv1 = t;
+        forward_word();
+        tempq.push(cv1);
+    }
+}
+
+void dequeue_brackets(queue<code_val> &tempq){
+    while(!tempq.empty()){
+        backward_word();
+        tempq.pop();
+    }
+
 }
 
 void P(){
@@ -136,15 +164,12 @@ void P(){
         }
     }else if("#" != t.code){
         // ≠ bg/#
-        parse_error("缺少<?开始符号，或者非法的结束符");
+        parse_error(__FUNCTION__, "缺少<?开始符号，或者非法的结束符");
     }
     // 如果是#的情况，则处理成空字的情况
 }
 
 void B(){
-    if(!match_brackets("{")){
-        parse_error("非法的语句开始符号");
-    }
     // B -> (S B) | ε
     // first(B) = {if , fn , wh , sw , fr , br , ct , ec , rt , id, ! , ++ , -- , s , i , ui , f , uf , fs , ε}
     // follow(B) = {ed , } , cs , df}
@@ -153,10 +178,7 @@ void B(){
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         S(), B();
     }else if(!str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-        parse_error("非法的语句开始符号");
-    }
-    if(!match_brackets("}")){
-        // parse_error("B3");
+        parse_error(__FUNCTION__, "非法的语句开始符号");
     }
 }
 
@@ -168,19 +190,21 @@ void S(){
     // 由于不能推出空字，不需要考虑follow集
     string arr1[] = {IF, FN, WH, SW, FR};
     string arr2[] = {BR, CT, EC, RT, ID, "!", "++", "--", _S, I, UI, F, UF, FS};
+    queue<code_val> tempq ;
+    enqueue_brackets("{", tempq);
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
+        dequeue_brackets(tempq);
         CS();
     }else if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
+        dequeue_brackets(tempq);
         PS();
     }else{
-        parse_error("非法的语句开始符号");
+        parse_error(__FUNCTION__, "非法的语句开始符号");
     }
 }
 
 void CS(){
-    if(!match_brackets("{")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("{");
     /*
      * CS -> fn fs '(' AS ')' { B }
      * CS -> wh '(' (RV | AS) ')' ({ B } | S)
@@ -225,22 +249,18 @@ void CS(){
             // 解决冲突问题，合并左因子
             forward_word();
             if(ID == t.code){
-                // 冲突，用队列来解决
-                code_val cv1 = t;
                 forward_word();
-                qc.push(cv1);
-                qc.push(t);
                 if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-                    forward_word();
+                    backward_word();
                     AS();
                 }else{
-                    forward_word();
+                    backward_word();
                     RV();
                 }
             }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
                 RV();
             }else{
-                parse_error("while语句语法不正确");
+                parse_error(__FUNCTION__, "while语句语法不正确");
             }
             if(")" == t.code) {
                 forward_word();
@@ -312,23 +332,25 @@ void CS(){
         forward_word();
         if("(" == t.code) {
             forward_word();
+            queue<code_val> tempq ;
+            enqueue_brackets("(", tempq);
             if(ID == t.code){
                 // 冲突，用队列来解决
-                code_val cv1 = t;
                 forward_word();
-                qc.push(cv1);
-                qc.push(t);
                 if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-                    forward_word();
+                    dequeue_brackets(tempq);
+                    backward_word();
                     AS();
                 }else{
-                    forward_word();
+                    dequeue_brackets(tempq);
+                    backward_word();
                     RV();
                 }
             }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
+                dequeue_brackets(tempq);
                 RV();
             }else{
-                parse_error("if语句的条件判断语法不正确");
+                parse_error(__FUNCTION__, "if语句的条件判断语法不正确");
             }
             if(")" == t.code) {
                 forward_word();
@@ -338,12 +360,12 @@ void CS(){
                     if("}" == t.code){
                         forward_word();
                     }else{
-                        parse_error("if语句的语法不正确，可能缺少一些必要的界符");
+                        parse_error(__FUNCTION__, "if语句的语法不正确，可能缺少一些必要的界符");
                     }
                 }else if(str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
                     S();
                 }else{
-                    parse_error("if语句的语法不正确，使用了错误的符号");
+                    parse_error(__FUNCTION__, "if语句的语法不正确，使用了错误的符号");
                 }
                 EF(), ES();
                 match = 1;
@@ -352,17 +374,16 @@ void CS(){
 
     }
     if(0 == match){
-        parse_error("while/for/if/function/switch语句的语法不正确，使用了错误的符号");
+        parse_error(__FUNCTION__, "while/for/if/function/switch语句的语法不正确，使用了错误的符号");
     }
-    if(!match_brackets("}")){
-        // parse_error("CS");
+    const int ecount = match_brackets("}", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "大括号不匹配");
     }
 }
 
 void PS(){
-    if(!match_brackets("{")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("{");
     // PS -> (br | ct | ec RV| rt RV | AS | RV);
     // first(PS) = {br , ct , ec , rt , id , ! , ++ , -- , s , i , ui , f , uf , fs}
     // first(RV) = {id , ! , ++ , -- , s , i , ui , f , uf , fs}
@@ -381,35 +402,31 @@ void PS(){
         RV();
     }else if(ID == t.code){
         // AS RV 冲突
-        code_val cv1 = t;
         forward_word();
-        qc.push(cv1);
-        qc.push(t);
         if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-            forward_word();
+            backward_word();
             AS();
         }else{
-            forward_word();
+            backward_word();
             RV();
         }
     }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         RV();
     }else{
-        parse_error("错误的语句开头");
+        parse_error(__FUNCTION__, "错误的语句开头");
     }
     if(";" != t.code){
-        parse_error("语句缺少;符号");
+        parse_error(__FUNCTION__, "语句缺少;符号");
     }
     forward_word();
-    if(!match_brackets("}")){
-        // parse_error("PS");
+    const int ecount = match_brackets("}", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "大括号不匹配");
     }
 }
 
 void SS(){
-    if(!match_brackets("{")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("{");
     // SS -> (((cs RV) | df) : B SS) | ε
     // first(SS) = {cs , df , ε}
     // follow(SS) = { '}' }
@@ -424,7 +441,7 @@ void SS(){
         if("}" == t.code){
             match = 1;
         }else{
-            parse_error("switch语句缺少闭合的界符");
+            parse_error(__FUNCTION__, "switch语句缺少闭合的界符");
         }
     }
     if(0 == match){
@@ -435,17 +452,16 @@ void SS(){
         }
     }
     if(0 == match){
-        parse_error("case语句缺少:符号");
+        parse_error(__FUNCTION__, "case语句缺少:符号");
     }
-    if(!match_brackets("}")){
-        // parse_error("SS");
+    const int ecount = match_brackets("}", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "大括号不匹配");
     }
 }
 
 void RV(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // RV -> VAR | MS | NM | STR | FC
     // first(VAR) = {id}
     // first(MS) = {id , ! , ++ , -- , s , i , ui , f , uf}
@@ -456,63 +472,82 @@ void RV(){
     string arr1[] = {"!", "++", "--"};
     string arr2[] = {I, UI, F, UF};
     string arr3[] = {")" , ";" , ":" , "]" , ","};
-    code_val cv1 = t;
+    queue<code_val> tempq ;
+    enqueue_brackets("(", tempq);
     if(FS == t.code){
+        dequeue_brackets(tempq);
         FC();
     }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
+        dequeue_brackets(tempq);
         MS();
     }else if(_S == t.code){
         // STR MS冲突
         // forward_word();
-        // qc.push(cv1);
-        // qc.push(t);
         // if("." == t.code){
-        //     forward_word();
+        //     backward_word();
         //     STR();
         // }else{
-        //     forward_word();
+        //     backward_word();
         //     MS();
         // }
+        dequeue_brackets(tempq);
         STR();
     }else if(ID == t.code){
         // VAR MS STR冲突
         forward_word();
-        qc.push(cv1);
-        qc.push(t);
         if("." == t.code){
-            forward_word();
+            backward_word();
+            dequeue_brackets(tempq);
             STR();
-        }else if("[" == t.code || "=" == t.code){
-            forward_word();
+        }else if("=" == t.code){
+            backward_word();
+            dequeue_brackets(tempq);
             VAR();
         }else{
-            forward_word();
-            MS();
+            queue<code_val> tempq1;
+            while("[" == t.code){
+                tempq1.push(t);
+                forward_word();
+                while(true){
+                    tempq1.push(t);
+                    if("]" == t.code){
+                        forward_word();
+                        break;
+                    }
+                    forward_word();
+                }
+            }
+            tempq1.push(t);
+            if("=" == t.code){
+                dequeue_brackets(tempq1);
+                VAR();
+            }else{
+                dequeue_brackets(tempq1);
+                MS();
+            }
         }
     }else if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
         // MS NM冲突
         forward_word();
-        qc.push(cv1);
-        qc.push(t);
+        dequeue_brackets(tempq);
         if(str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
-            forward_word();
-            MS();
-        }else{
-            forward_word();
+            backward_word();
             NM();
+        }else{
+            backward_word();
+            MS();
         }
     }else{
-        parse_error("右值语法错误");
+        parse_error(__FUNCTION__, "右值语法错误");
     }
-    if(!match_brackets(")")){
-        // parse_error("RV");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void AS(){
-    if(!match_brackets("{")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("{");
     // AS -> T1 (VAR | AE)
     // T1 -> ((VAR | AE) , T1) | ε
     // first(AS) = {id}
@@ -520,31 +555,27 @@ void AS(){
     // string arr1[] = {")", ",", ";"};
     if(ID == t.code){
         do {
-            code_val cv1 = t;
             forward_word();
-            qc.push(cv1);
-            qc.push(t);
             if ("=" == t.code) {
-                forward_word();
+                backward_word();
                 AE();
             } else {
-                forward_word();
+                backward_word();
                 VAR();
             }
         }while(("," == t.code) && forward_word() && (ID == t.code));
         // if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
-        //     parse_error("AS");
+        //     parse_error(__FUNCTION__, "AS");
         // }
     }
-    if(!match_brackets("}")){
-        // parse_error("AS");
+    const int ecount = match_brackets("}", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "大括号不匹配");
     }
 }
 
 void MS(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // MS -> T2 ME
     // T2 -> (ME MO T2) | ε
     // MO -> (+ - * / % == > >= < <= != && || )
@@ -559,13 +590,14 @@ void MS(){
             MO(), ME();
         }
         if(!str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
-            parse_error("非法的算术表达式");
+            parse_error(__FUNCTION__, "非法的算术表达式1");
         }
     }else{
-        parse_error("非法的算术表达式");
+        parse_error(__FUNCTION__, "非法的算术表达式2");
     }
-    if(!match_brackets(")")){
-        // parse_error("MS3");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
@@ -578,28 +610,24 @@ void EF(){
     string arr1[] = {"!" , "++" , "--" , _S , I , UI , F , UF , FS};
     string arr2[] = {"," , "="};
     string arr3[] = {IF, FN, WH, SW, FR, BR, CT, EC, RT, ID};
-    string arr4[] = {IF, FN, WH, SW, FR, BR, CT, EC, RT, ID, _ES};
+    string arr4[] = {IF, FN, WH, SW, FR, BR, CT, EC, RT, ID, _ES, "}"};
     if(_EF == t.code){
         forward_word();
         if("(" == t.code){
             forward_word();
             if(ID == t.code){
-                // 冲突，用队列来解决
-                code_val cv1 = t;
                 forward_word();
-                qc.push(cv1);
-                qc.push(t);
                 if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-                    forward_word();
+                    backward_word();
                     AS();
                 }else{
-                    forward_word();
+                    backward_word();
                     RV();
                 }
             }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
                 RV();
             }else{
-                parse_error("elseif条件语法错误");
+                parse_error(__FUNCTION__, "elseif条件语法错误");
             }
             if(")" == t.code){
                 forward_word();
@@ -609,20 +637,20 @@ void EF(){
                     if("}" == t.code){
                         forward_word();
                     }else{
-                        parse_error("elseif语句缺少闭合的界符");
+                        parse_error(__FUNCTION__, "elseif语句缺少闭合的界符");
                     }
                 }else if(str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
                     S();
                 }else{
-                    parse_error("elseif语句语法错误");
+                    parse_error(__FUNCTION__, "elseif语句语法错误");
                 }
                 EF();
             }
         }else{
-            parse_error("elseif语句缺少闭合的界符");
+            parse_error(__FUNCTION__, "elseif语句缺少闭合的界符");
         }
     }else if(!str_in_array(t.code, arr4, sizeof(arr4)/sizeof(arr4[0]))){
-        parse_error("elseif语句附近出现非法字符");
+        parse_error(__FUNCTION__, "elseif语句附近出现非法字符");
     }
 }
 
@@ -639,22 +667,20 @@ void ES(){
             if("}" == t.code){
                 forward_word();
             }else{
-                parse_error("else语句缺少闭合的界符");
+                parse_error(__FUNCTION__, "else语句缺少闭合的界符");
             }
         }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
             S();
         }else{
-            parse_error("else语句语法错误");
+            parse_error(__FUNCTION__, "else语句语法错误");
         }
-    }else if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
-        parse_error("else语句附近出现非法字符");
+    }else if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0])) && "}" != t.code){
+        parse_error(__FUNCTION__, "else语句附近出现非法字符");
     }
 }
 
 void AE(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // AE -> VAR = RV
     // first(AE) = {id}
     int match = 0;
@@ -667,50 +693,47 @@ void AE(){
         }
     }
     if(0 == match){
-        parse_error("赋值语句语法错误");
+        parse_error(__FUNCTION__, "赋值语句语法错误");
     }
-    if(!match_brackets(")")){
-        // parse_error("AE");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void VAR(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // VAR -> id IDX
     // first(VAR) = {id}
     if(ID == t.code){
         forward_word();
         IDX();
     }else{
-        parse_error("变量定义语法错误");
+        parse_error(__FUNCTION__, "变量定义语法错误");
     }
-    if(!match_brackets(")")){
-        // parse_error("VAR");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void NM(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // NM -> i | ui | f | uf
     string arr1[] = {I, UI, F, UF};
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         forward_word();
     }else{
-        parse_error("不合法的数字表示");
+        parse_error(__FUNCTION__, "不合法的数字表示");
     }
-    if(!match_brackets(")")){
-        // parse_error("NM");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void STR(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // STR -> T3 (s | VAR)
     // T3 -> ((s | VAR) . T3) | ε
     // first(STR) = {s,id}
@@ -720,18 +743,17 @@ void STR(){
         } else if (ID == t.code) {
             VAR();
         } else {
-            parse_error("字符串定义不合法");
+            parse_error(__FUNCTION__, "字符串定义不合法");
         }
     }while("." == t.code && forward_word());
-    if(!match_brackets(")")){
-        // parse_error("STR2");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void FC(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // FC -> fs '(' CP ')'
     int match = 0;
     if(FS == t.code){
@@ -746,17 +768,16 @@ void FC(){
         }
     }
     if(0 == match){
-        parse_error("函数调用语法不合法");
+        parse_error(__FUNCTION__, "函数调用语法不合法");
     }
-    if(!match_brackets(")")){
-        // parse_error("FC");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
 void ME(){
-    if(!match_brackets("(")){
-        parse_error("非法的语句开始符号");
-    }
+    const int bcount = match_brackets("(");
     // ME -> ((! | ++ | --) VAR) | (VAR (++ | --) | VAR | NM | STR
     // first(ME) = {! , ++ , -- , id , s , i , ui , f , uf}
     // first(VAR) = {id}
@@ -768,19 +789,16 @@ void ME(){
         STR();
     }else if(ID == t.code){
         // 冲突 VAR STR
-        code_val cv1 = t;
         forward_word();
-        qc.push(cv1);
-        qc.push(t);
         if("[" == t.code || "=" == t.code){
             // VAR
-            forward_word();
+            backward_word();
             VAR();
             if("++" == t.code || "--" == t.code){
                 forward_word();
             }
         }else{
-            forward_word();
+            backward_word();
             STR();
         }
     }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
@@ -789,10 +807,11 @@ void ME(){
     }else if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
         NM();
     }else{
-        parse_error("不合法的算术表达式");
+        parse_error(__FUNCTION__, "不合法的算术表达式");
     }
-    if(!match_brackets(")")){
-        // parse_error("ME");
+    const int ecount = match_brackets(")", bcount);
+    if(bcount != ecount){
+        parse_error(__FUNCTION__, "小括号不匹配");
     }
 }
 
@@ -802,7 +821,7 @@ void MO(){
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         forward_word();
     }else{
-        parse_error("不支持的运算符");
+        parse_error(__FUNCTION__, "不支持的运算符");
     }
 }
 
@@ -817,10 +836,10 @@ void IDX(){
             forward_word();
             IDX();
         }else{
-            parse_error("数组缺少闭合界符]");
+            parse_error(__FUNCTION__, "数组缺少闭合界符]");
         }
     }else if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
-        parse_error("非法操作数组");
+        parse_error(__FUNCTION__, "非法操作数组");
     }
 }
 
@@ -837,7 +856,7 @@ void CP(){
             RV();
         }
     }else if(")" != t.code){
-        parse_error("函数调用的参数列表缺少闭合界符)");
+        parse_error(__FUNCTION__, "函数调用的参数列表缺少闭合界符)");
     }
 }
 
