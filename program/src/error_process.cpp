@@ -2,7 +2,7 @@
 using namespace std;
 
 void err_exit(char str[]){
-    cerr << str << endl;
+    cout << str << endl;
     exit(0);
 }
 

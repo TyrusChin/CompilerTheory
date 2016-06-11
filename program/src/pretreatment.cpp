@@ -5,6 +5,9 @@ using namespace std;
 void pretreatment(char filename[], char buf[], char target[]){
 
     ifstream cinf(filename, ios::in);   // 定义输入流，从文件输入到内存
+    if(!cinf.is_open()){
+        err_exit((char *)"文件不存在！");
+    }
     char c0 = '$', c1;  // 记录前一个字符，用于处理一些注释和续行符
     bool in_comment = false;    // 注释标记
     bool in_string = false;     // 字符串标记
@@ -81,7 +84,8 @@ void pretreatment(char filename[], char buf[], char target[]){
                 }else if(c0 == '\\' && c1 == '\n'){
                     --i;    // 去掉续行符
                 }else{
-                    if(c1 == '\t' || c1 == '\n' || c1 == '\r'){
+                    if(c1 == '\t' || c1 == '\r'){
+                    // if(c1 == '\t' || c1 == '\n' || c1 == '\r'){
                         c1 = ' ';
                     }
                     buf[i++] = c1;  // 将字符存入扫描缓冲区
@@ -93,7 +97,10 @@ void pretreatment(char filename[], char buf[], char target[]){
                 in_comment = false;
             }else if(comment_type == 2 && c1 == '\n'){
                 in_comment = false;
-                buf[i++] = ' ';
+                // buf[i++] = ' ';
+            }
+            if(c1 == '\n'){
+                buf[i++] = '\n';
             }
         }
         c0 = c1;    // 向前读一个字符

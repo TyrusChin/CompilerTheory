@@ -1,163 +1,110 @@
-bg	NUL
-fs	header
-(	NUL
-s	Content-type: text/html; charset=utf-8
-)	NUL
-;	NUL
-if	NUL
-(	NUL
-(	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	tmp_name
-]	NUL
-==	NUL
-s	
-)	NUL
-||	NUL
-(	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	tmp_name
-]	NUL
-==	NUL
-s	none
-)	NUL
-)	NUL
-{	NUL
-ec	NUL
-s	没有选文件或文件太大
-;	NUL
-ec	NUL
-s	<script>location.href='picture.php'</script>
-;	NUL
-}	NUL
-es	NUL
-{	NUL
-id	UploadPath
-=	NUL
-s	./photo/
-;	NUL
-id	dest_filename
-=	NUL
-id	UploadPath
-.	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	name
-]	NUL
-;	NUL
-id	type
-=	NUL
-fs	strtolower
-(	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	type
-]	NUL
-)	NUL
-;	NUL
-if	NUL
-(	NUL
-fs	file_exists
-(	NUL
-id	dest_filename
-)	NUL
-)	NUL
-{	NUL
-ec	NUL
-s	<script>alert('文件
-,	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	name
-]	NUL
-,	NUL
-s	已经存在');location.href='picture.php'</script>
-;	NUL
-}	NUL
-es	NUL
-{	NUL
-if	NUL
-(	NUL
-id	type
-==	NUL
-s	image/jpg
-||	NUL
-id	type
-==	NUL
-s	image/gif
-||	NUL
-id	type
-==	NUL
-s	image/jpeg
-)	NUL
-{	NUL
-if	NUL
-(	NUL
-fs	copy
-(	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	tmp_name
-]	NUL
-,	NUL
-id	dest_filename
-)	NUL
-)	NUL
-ec	NUL
-s	<script>alert('上传文件
-,	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	name
-]	NUL
-,	NUL
-s	成功！');location.href='picture.php'</script>
-;	NUL
-es	NUL
-ec	NUL
-s	<script>alert('上传文件
-,	NUL
-id	_FILES
-[	NUL
-s	uploadfile
-]	NUL
-[	NUL
-s	name
-]	NUL
-,	NUL
-s	失败');location.href='picture.php'</script>
-;	NUL
-}	NUL
-es	NUL
-{	NUL
-ec	NUL
-s	<script>alert('文件类型错误');location.href='picture.php'</script>
-;	NUL
-}	NUL
-}	NUL
-}	NUL
-ed	NUL
-#	NUL
+1	bg	NUL
+2	fs	header
+2	(	NUL
+2	s	Content-type: text/html; charset=utf-8
+2	)	NUL
+2	;	NUL
+3	if	NUL
+3	(	NUL
+3	id	_FILES_uploadfile_tmp_name
+3	[	NUL
+3	s	123
+3	]	NUL
+3	||	NUL
+3	ui	1
+3	)	NUL
+4	{	NUL
+5	ec	NUL
+5	s	没有选文件或文件太大
+5	;	NUL
+6	ec	NUL
+6	s	<script>location.href='picture.php'</script>
+6	;	NUL
+7	}	NUL
+8	es	NUL
+9	{	NUL
+10	id	UploadPath
+10	=	NUL
+10	s	./photo/
+10	;	NUL
+11	id	dest_filename
+11	=	NUL
+11	id	UploadPath
+11	.	NUL
+11	id	_FILES_uploadfile_name
+11	;	NUL
+12	id	type
+12	=	NUL
+12	fs	strtolower
+12	(	NUL
+12	id	_FILES_uploadfile_type
+12	)	NUL
+12	;	NUL
+13	if	NUL
+13	(	NUL
+13	fs	file_exists
+13	(	NUL
+13	id	dest_filename
+13	)	NUL
+13	)	NUL
+14	{	NUL
+15	ec	NUL
+15	s	<script>alert('文件
+15	.	NUL
+15	id	_FILES_uploadfile_name
+15	.	NUL
+15	s	已经存在');location.href='picture.php'</script>
+15	;	NUL
+16	}	NUL
+17	es	NUL
+18	{	NUL
+19	if	NUL
+19	(	NUL
+19	id	type
+19	==	NUL
+19	s	image/jpg
+19	||	NUL
+19	id	type
+19	==	NUL
+19	s	image/gif
+19	||	NUL
+19	id	type
+19	==	NUL
+19	s	image/jpeg
+19	)	NUL
+20	{	NUL
+21	if	NUL
+21	(	NUL
+21	fs	copy
+21	(	NUL
+21	id	_FILES_uploadfile_tmp_name
+21	,	NUL
+21	id	dest_filename
+21	)	NUL
+21	)	NUL
+22	ec	NUL
+22	s	<script>alert('上传文件
+22	.	NUL
+22	id	_FILES_uploadfile_name
+22	.	NUL
+22	s	成功！');location.href='picture.php'</script>
+22	;	NUL
+23	es	NUL
+24	ec	NUL
+24	s	<script>alert('上传文件
+24	.	NUL
+24	id	_FILES_uploadfile_name
+24	.	NUL
+24	s	失败');location.href='picture.php'</script>
+24	;	NUL
+25	}	NUL
+26	es	NUL
+27	{	NUL
+28	ec	NUL
+28	s	<script>alert('文件类型错误');location.href='picture.php'</script>
+28	;	NUL
+29	}	NUL
+30	}	NUL
+31	}	NUL
+32	ed	NUL
+32	#	NUL

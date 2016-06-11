@@ -29,6 +29,7 @@ void CP();  // 调用函数参数
 struct code_val {
     string code;
     string val;
+    int line;
 };
 
 typedef struct cvNode {
@@ -53,7 +54,7 @@ ifstream cinf;
 
 // 错误输出函数 正式的
 void parse_error(string func, string reason, string code = t.code){
-    cout << endl << func << "函数中，" << reason << " : " << code << endl;
+    cout << endl << "第" << t.line << "行" << func << "函数中，" << reason << " : " << code << endl;
     exit(0);
 }
 
@@ -64,7 +65,7 @@ void parser(char code_val_file[]){
     pCvNode p = start;  // 头节点
     p -> next = 0;
     p -> front = 0;
-    while(cinf >> t.code){
+    while(cinf >> t.line && cinf >> t.code){
         cinf.getline(tval, sizeof(tval));
         t.val = tval;
         pCvNode q = new cvNode();

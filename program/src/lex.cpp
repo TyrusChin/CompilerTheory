@@ -6,7 +6,7 @@
 #define MCOL 31
 using namespace std;
 
-// 后面要用的一个函数
+// 判断整型
 int is_int(string s){
     for(int i = 0; i < s.size(); i++){
         if(s[i] <'0' || s[i] > '9'){
@@ -16,10 +16,25 @@ int is_int(string s){
     return 1;
 }
 
-// (code, val)
+int current_line = 1;
+
+// 获取char数组的某个元素的内容
+char get_buf(char *buf, int &index, int forward_flag = 1){
+    // forward_flag 用于标记是否前进，当遇到\n的时候，需要current_line+1
+    while(buf[index] == '\n'){
+        if(1 == forward_flag){
+            ++ current_line;
+        }
+        index ++;
+    }
+    return buf[index];
+}
+
+// 单词二元式+对应的行号 (code, val, line)
 struct code_val{
     string code;
     string val;
+    int line;
 };
 
 // 字符集
@@ -137,13 +152,14 @@ string search_table(string token){
 // 单词二元式扫描函数
 struct code_val scanner(char *buf, int &i){
     // 每调用一次，返回一个单词的二元式
-    struct code_val res = {"","NUL"};
+    struct code_val res = {"","NUL",0};
     string token = "";  // 用于保存单词，有意义的时候，填写到res的val字段中
-    int state = 0, current_final_state = -1, j = col(buf[i], col_char);   // 初始状态为0，当前的所处的最长匹配(处于终态的情况)记录为current_final_state，获得当前的字符对应的列号
+    int state = 0, current_final_state = -1, j = col(get_buf(buf, i), col_char);   // 初始状态为0，当前的所处的最长匹配(处于终态的情况)记录为current_final_state，获得当前的字符对应的列号
+    res.line = current_line;
     while(M[state][j]){
         // 循环直到没有后继状态
-        token += buf[i];
-        if(buf[i] == '#'){
+        token += get_buf(buf, i);
+        if(get_buf(buf, i) == '#'){
             current_final_state = 24;   // #的状态是24，事实上只要current_final_state不是-1就判断通过
             break;
         }
@@ -151,10 +167,12 @@ struct code_val scanner(char *buf, int &i){
         if(is_final_state(state)){
             current_final_state = state;
         }
-        j = col(buf[++i], col_char);  // 将下一个字符转换成列号
+        ++ i;
+        j = col(get_buf(buf, i), col_char);  // 将下一个字符转换成列号
         // 特殊情况：在字符串中出现"\""的情况，为了转义的"不被识别成字符串定义符，需要修改j的值
         if(token[0] == '"'){
-            if(buf[i] == '"' && buf[i-1] == '\\'){
+            int tempi = i - 1;
+            if(get_buf(buf, i) == '"' && get_buf(buf, tempi, 0) == '\\'){
                 j = (int)(col_char.size() - 1); // 把\"归类为其他字符
             }
         }
@@ -234,15 +252,15 @@ void lex(char buf[], char target[]){
     cout << "<单词二元式>" << endl;
 
     do{
-        while(buf[i] == ' '){
+        while(get_buf(buf, i) == ' '){
             ++i;
         }
         t = scanner(buf, i);
         if((j++)%line_print == 0){
             cout << endl;
         }
-        cout << '(' << t.code << ',' << t.val << ')';
-        coutf << t.code << '\t' << t.val << endl;
+        cout << '(' << t.code << ',' << t.val << "," << t.line << ')';
+        coutf << t.line << '\t' << t.code << '\t' << t.val << endl;
 
     }while(t.code != "#");
     cout << endl << "词法分析结束，结果保存在 '" << target << "' 中。" << endl;

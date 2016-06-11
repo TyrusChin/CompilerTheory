@@ -1,51 +1,79 @@
-bg	NUL
-fs	header
-(	NUL
-s	Content-type:\"text/html;charset=utf-8
-)	NUL
-;	NUL
-id	i
-=	NUL
-ui	2
-;	NUL
-id	x
-=	NUL
-uf	2.3
-;	NUL
-id	y
-=	NUL
-id	i
-+	NUL
-ui	2
-;	NUL
-id	_xy
-=	NUL
-s	abc
-;	NUL
-id	Y
-=	NUL
-ui	100
-;	NUL
-ec	NUL
-id	y
-.	NUL
-id	Y
-;	NUL
-id	str
-=	NUL
-s	// // /* 什么鬼 */
-;	NUL
-id	str1
-=	NUL
-s	' \\n \\n 这是单引号的 '
-;	NUL
-ec	NUL
-id	str
-.	NUL
-s	\n
-;	NUL
-ec	NUL
-ui	123
-;	NUL
-ed	NUL
-#	NUL
+1	bg	NUL
+3	fs	header
+3	(	NUL
+3	s	Content-type:\"text/html;charset=utf-8
+3	)	NUL
+3	;	NUL
+4	id	i
+4	=	NUL
+4	ui	2
+4	;	NUL
+5	id	ii
+5	=	NUL
+5	(	NUL
+5	ui	2
+5	>	NUL
+5	ui	3
+5	)	NUL
+5	;	NUL
+6	id	x
+6	=	NUL
+6	uf	2.3
+6	;	NUL
+14	if	NUL
+14	(	NUL
+14	id	x
+14	==	NUL
+14	ui	2
+14	)	NUL
+14	{	NUL
+14	ec	NUL
+14	id	x
+14	;	NUL
+14	}	NUL
+15	ec	NUL
+15	ui	21312
+15	;	NUL
+19	id	y
+19	=	NUL
+19	(	NUL
+19	id	i
+19	+	NUL
+19	ui	2
+19	)	NUL
+19	;	NUL
+19	id	_xy
+19	=	NUL
+19	s	abc
+19	;	NUL
+20	id	Y
+20	=	NUL
+20	(	NUL
+20	(	NUL
+20	ui	100
+20	)	NUL
+20	)	NUL
+20	;	NUL
+21	ec	NUL
+21	id	y
+21	.	NUL
+21	id	Y
+21	;	NUL
+22	id	str
+22	=	NUL
+22	s	// // /* 什么鬼 */
+22	;	NUL
+23	id	str1
+23	=	NUL
+23	s	' \\n \\n 这是单引号的 '
+23	;	NUL
+28	ec	NUL
+28	id	str
+28	.	NUL
+28	s	\n
+28	;	NUL
+31	ec	NUL
+31	ui	123
+31	;	NUL
+34	ed	NUL
+35	#	NUL
