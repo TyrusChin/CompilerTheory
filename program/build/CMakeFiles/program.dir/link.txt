@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11   CMakeFiles/program.dir/main.cpp.o CMakeFiles/program.dir/src/pretreatment.cpp.o CMakeFiles/program.dir/src/error_process.cpp.o CMakeFiles/program.dir/src/lex.cpp.o CMakeFiles/program.dir/src/recursive_descent.cpp.o  -o program -rdynamic 
