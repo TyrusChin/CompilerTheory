@@ -81,7 +81,7 @@ void pretreatment(char filename[], char buf[], char target[]){
                     in_comment = true;
                     comment_type = 2;
                     --i;
-                }else if(c0 == '\\' && c1 == '\n'){
+                }else if(c0 == '\\' && c1 == '\\'){
                     --i;    // 去掉续行符
                 }else{
                     if(c1 == '\t' || c1 == '\r'){

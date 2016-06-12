@@ -83,6 +83,14 @@ void parser(char code_val_file[]){
     }else{
         parse_error(__FUNCTION__, "多余的符号");
     }
+    // free and close
+    p = start;
+    while(p){
+        pCvNode q = p;
+        p = p -> next;
+        delete q;
+    }
+    cinf.close();
     return ;
 }
 
@@ -99,14 +107,22 @@ int str_in_array(string find, string array[], int size){
 
 int forward_word(){
     // 移进一个单词
+    if(!(pn -> next)){
+        cout << "内部错误，编译器指针异常！" << endl;
+        exit(0);
+    }
     pn = pn -> next;
     t = pn -> node;
-    cout << t.code << " " << t.val << endl;
+    cout << t.line << "\t" << t.code << "\t" << t.val << endl;
     return 1;
 }
 
 int backward_word(){
     // 后退一个单词
+    if(!(pn -> next)){
+        cout << "内部错误，编译器指针异常！" << endl;
+        exit(0);
+    }
     pn = pn -> front;
     t = pn -> node;
     return 1;
@@ -179,7 +195,7 @@ void B(){
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         S(), B();
     }else if(!str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
-        parse_error(__FUNCTION__, "非法的语句开始符号");
+        parse_error(__FUNCTION__, "非法的语句开始符号或者缺少结束符?>");
     }
 }
 
@@ -798,6 +814,8 @@ void ME(){
             if("++" == t.code || "--" == t.code){
                 forward_word();
             }
+        }else if("++" == t.code || "--" == t.code){
+            forward_word();
         }else{
             backward_word();
             STR();
