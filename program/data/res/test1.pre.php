@@ -10,6 +10,7 @@
 
 
 
+ $abc = "$aaa,var";
 
     if($x == 2){echo $x;}
     echo 21312;

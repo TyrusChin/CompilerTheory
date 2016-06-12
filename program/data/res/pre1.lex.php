@@ -1,0 +1,37 @@
+1	bg	NUL
+4	id	a
+4	=	NUL
+4	s	string123
+4	;	NUL
+13	id	x
+13	=	NUL
+13	ui	1
+13	+	NUL
+13	ui	2
+14	;	NUL
+15	id	conn_str
+15	=	NUL
+15	s	单引号的
+15	.	NUL
+15	id	a
+15	.	NUL
+15	s	双引号的
+15	;	NUL
+16	id	double
+16	=	NUL
+16	s	\n\t
+16	;	NUL
+16	id	single
+16	=	NUL
+16	s	\\n\\t
+16	;	NUL
+19	id	what
+19	=	NUL
+19	s	' 假装是一个字符串结束符 //假装是一个注释！
+19	;	NUL
+20	id	what2
+20	=	NUL
+20	s	\" /*?????? block notes??*/ 
+20	;	NUL
+21	ed	NUL
+23	#	NUL

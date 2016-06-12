@@ -1,0 +1,16 @@
+1	bg	NUL
+3	id	a
+3	=	NUL
+3	ui	1
+3	;	NUL
+4	ef	NUL
+4	(	NUL
+4	id	a
+4	)	NUL
+4	{	NUL
+5	ec	NUL
+5	ui	123
+5	;	NUL
+6	}	NUL
+7	ed	NUL
+7	#	NUL

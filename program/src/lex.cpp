@@ -242,6 +242,7 @@ void lex(char buf[], char target[]){
 
     ofstream coutf(target, ios::out);
     code_val t;
+    current_line = 1;   // 静态全局变量，需要重新赋值才可以
     int i = 0;
 
     // 以下两个变量只是用于格式化显示

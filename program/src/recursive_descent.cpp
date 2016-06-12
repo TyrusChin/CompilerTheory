@@ -424,8 +424,27 @@ void PS(){
             backward_word();
             AS();
         }else{
-            backward_word();
-            RV();
+            queue<code_val> tempq1;
+            while("[" == t.code){
+                tempq1.push(t);
+                forward_word();
+                while(true){
+                    tempq1.push(t);
+                    if("]" == t.code){
+                        forward_word();
+                        break;
+                    }
+                    forward_word();
+                }
+            }
+            tempq1.push(t);
+            if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
+                dequeue_brackets(tempq1);
+                AS();
+            }else{
+                dequeue_brackets(tempq1);
+                RV();
+            }
         }
     }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         RV();
@@ -492,8 +511,37 @@ void RV(){
     queue<code_val> tempq ;
     enqueue_brackets("(", tempq);
     if(FS == t.code){
-        dequeue_brackets(tempq);
-        FC();
+        // FC MS冲突
+        forward_word();
+        int tempf = 0;  // 一共前进了多少个字符
+        int tempm = 0;  // 括号匹配的情况，再次为0就跳出
+        while(true){
+            if("(" == t.code){
+                ++ tempm;
+            }else if(")" == t.code){
+                -- tempm;
+            }
+            ++ tempf;
+            forward_word();
+            if(0 == tempm){
+                break;
+            }
+        }
+        if(str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
+            while(tempf --){
+                backward_word();
+            }
+            backward_word();
+            dequeue_brackets(tempq);
+            FC();
+        }else{
+            while(tempf --){
+                backward_word();
+            }
+            backward_word();
+            dequeue_brackets(tempq);
+            MS();
+        }
     }else if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
         dequeue_brackets(tempq);
         MS();
@@ -577,8 +625,32 @@ void AS(){
                 backward_word();
                 AE();
             } else {
-                backward_word();
-                VAR();
+                if("[" == t.code){
+                    queue<code_val> tempq1;
+                    while("[" == t.code){
+                        tempq1.push(t);
+                        forward_word();
+                        while(true){
+                            tempq1.push(t);
+                            if("]" == t.code){
+                                forward_word();
+                                break;
+                            }
+                            forward_word();
+                        }
+                    }
+                    tempq1.push(t);
+                    if ("=" == t.code) {
+                        dequeue_brackets(tempq1);
+                        AE();
+                    }else{
+                        dequeue_brackets(tempq1);
+                        VAR();
+                    }
+                }else {
+                    backward_word();
+                    VAR();
+                }
             }
         }while(("," == t.code) && forward_word() && (ID == t.code));
         // if(!str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
@@ -598,7 +670,7 @@ void MS(){
     // MO -> (+ - * / % == > >= < <= != && || )
     // first(MS) = {id , ! , ++ , -- , s , i , ui , f , uf}
     // follow(MS) = {) , ; , : , ] , ,(逗号)}
-    string arr1[] = {ID, "!", "++", "--", _S, I, UI, F, UF};
+    string arr1[] = {ID, "!", "++", "--", _S, I, UI, F, UF, FS};
     string arr2[] = {"+", "-", "*", "/", "%", "==", ">", ">=", "<", "<=", "!=", "&&", "||"};    //MO
     string arr3[] = {")", ";", ":", "]", ","};
     if(str_in_array(t.code, arr1, sizeof(arr1)/sizeof(arr1[0]))){
@@ -607,10 +679,10 @@ void MS(){
             MO(), ME();
         }
         if(!str_in_array(t.code, arr3, sizeof(arr3)/sizeof(arr3[0]))){
-            parse_error(__FUNCTION__, "非法的算术表达式1");
+            parse_error(__FUNCTION__, "非法的算术表达式");
         }
     }else{
-        parse_error(__FUNCTION__, "非法的算术表达式2");
+        parse_error(__FUNCTION__, "非法的算术表达式");
     }
     const int ecount = match_brackets(")", bcount);
     if(bcount != ecount){
@@ -800,6 +872,7 @@ void ME(){
     // first(VAR) = {id}
     // first(NM) = {i , ui , f , uf}
     // first(STR) = {s,id}
+    // first(FC) = {fs}
     string arr1[] = {"!", "++", "--"};
     string arr2[] = {I, UI, F, UF};
     if(_S == t.code){
@@ -825,6 +898,8 @@ void ME(){
         VAR();
     }else if(str_in_array(t.code, arr2, sizeof(arr2)/sizeof(arr2[0]))){
         NM();
+    }else if(FS == t.code){
+        FC();
     }else{
         parse_error(__FUNCTION__, "不合法的算术表达式");
     }
